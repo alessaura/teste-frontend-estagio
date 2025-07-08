@@ -3,3 +3,8 @@ export { default as SubmitButton } from './SubmitButton';
 export { default as Loader } from './Loader';
 export { default as Toast } from './Toast';
 export { default as ToastContainer } from './ToastContainer';
+export { default as Tooltip } from './Tooltip';
+export { default as Skeleton } from './Skeleton';
+export { default as PasswordStrength } from './PasswordStrength';
+export { default as UserProfile } from './UserProfile';
+export { default as ThemeToggle } from './ThemeToggle';

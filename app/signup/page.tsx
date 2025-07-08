@@ -5,6 +5,7 @@ import { Eye, EyeOff, X, CheckCircle } from "lucide-react";
 
 import { registerUser, isAuthenticated } from "@/lib/auth";
 import { Input, SubmitButton, Loader } from "@/components";
+import PasswordStrength from "@/components/PasswordStrength";
 import { useToast } from '@/contexts/ToastContext';
 
 interface FormData {
@@ -53,6 +54,48 @@ const Signup = () => {
     }
   }, [push]);
 
+  // Funções de validação em tempo real
+  const usernameValidation = (username: string) => {
+    if (username.length < 3) {
+      return {
+        isValid: false,
+        message: "Nome de usuário deve ter pelo menos 3 caracteres"
+      };
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return {
+        isValid: false,
+        message: "Apenas letras, números e underscore são permitidos"
+      };
+    }
+    return { isValid: true };
+  };
+
+  const emailValidation = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return {
+      isValid: emailRegex.test(email),
+      message: !emailRegex.test(email) ? "Email inválido" : undefined
+    };
+  };
+
+  const passwordValidation = (password: string) => {
+    if (password.length < 6) {
+      return {
+        isValid: false,
+        message: "Senha deve ter pelo menos 6 caracteres"
+      };
+    }
+    return { isValid: true };
+  };
+
+  const confirmPasswordValidation = (confirmPassword: string) => {
+    return {
+      isValid: confirmPassword === formData.password,
+      message: confirmPassword !== formData.password ? "Senhas não coincidem" : undefined
+    };
+  };
+
   // Validações
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -76,6 +119,10 @@ const Signup = () => {
     // Validar username
     if (!formData.username.trim()) {
       newErrors.username = "Nome de usuário é obrigatório";
+      setShakeUsername(true);
+      hasErrors = true;
+    } else if (formData.username.length < 3) {
+      newErrors.username = "Nome de usuário deve ter pelo menos 3 caracteres";
       setShakeUsername(true);
       hasErrors = true;
     }
@@ -173,9 +220,9 @@ const Signup = () => {
 
   return (
     <Suspense fallback="Carregando...">
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col w-[450px] p-8 bg-white rounded-xl shadow-lg">
-          <h1 className="text-center font-bold text-[28px] md:text-[32px] hover:scale-[1.03] transition-all duration-500 cursor-default">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+          <h1 className="text-center font-bold text-[28px] md:text-[32px] hover:scale-[1.03] transition-all duration-500 cursor-default text-gray-900 dark:text-white">
             Cadastrar na{" "}
             <span className="gradient-text from-secondary-purple to-primary-purple">
               Capivara AI
@@ -185,7 +232,7 @@ const Signup = () => {
           <form onSubmit={handleSubmit} className="flex flex-col mt-8 relative">
             {/* Campo Username */}
             <label
-              className="block text-base font-medium mt-8 mb-2"
+              className="block text-base font-medium mt-8 mb-2 text-gray-700 dark:text-gray-300"
               htmlFor="username-input"
             >
               Nome de Usuário
@@ -202,6 +249,8 @@ const Signup = () => {
               state={errors.username ? "error" : "default"}
               disabled={isSubmitLoading}
               className={`${shakeUsername && "animate-shake"}`}
+              tooltip="Mínimo 3 caracteres, apenas letras, números e underscore"
+              realTimeValidation={usernameValidation}
             />
             {errors.username && (
               <span className="text-red-500 text-sm mt-1">{errors.username}</span>
@@ -209,7 +258,7 @@ const Signup = () => {
 
             {/* Campo Email */}
             <label
-              className="block text-base font-medium mt-6 mb-2"
+              className="block text-base font-medium mt-6 mb-2 text-gray-700 dark:text-gray-300"
               htmlFor="email-input"
             >
               Email
@@ -226,6 +275,8 @@ const Signup = () => {
               state={errors.email ? "error" : "default"}
               disabled={isSubmitLoading}
               className={`${shakeEmail && "animate-shake"}`}
+              tooltip="Digite um email válido (ex: usuario@exemplo.com)"
+              realTimeValidation={emailValidation}
             />
             {errors.email && (
               <span className="text-red-500 text-sm mt-1">{errors.email}</span>
@@ -233,7 +284,7 @@ const Signup = () => {
 
             {/* Campo Senha */}
             <label
-              className="block text-base font-medium mt-6 mb-2"
+              className="block text-base font-medium mt-6 mb-2 text-gray-700 dark:text-gray-300"
               htmlFor="password-input"
             >
               Senha
@@ -258,14 +309,22 @@ const Signup = () => {
                 )
               }
               onClickIcon={() => setShowPassword((prev) => !prev)}
+              tooltip="Crie uma senha forte para maior segurança"
+              realTimeValidation={passwordValidation}
+              showValidationIcon={false} // Desabilitar ícone pois temos o indicador de força
             />
             {errors.password && (
               <span className="text-red-500 text-sm mt-1">{errors.password}</span>
             )}
 
+            {/* Indicador de Força da Senha */}
+            {formData.password && (
+              <PasswordStrength password={formData.password} />
+            )}
+
             {/* Campo Confirmação de Senha */}
             <label
-              className="block text-base font-medium mt-6 mb-2"
+              className="block text-base font-medium mt-6 mb-2 text-gray-700 dark:text-gray-300"
               htmlFor="confirm-password-input"
             >
               Confirmar Senha
@@ -290,6 +349,8 @@ const Signup = () => {
                 )
               }
               onClickIcon={() => setShowConfirmPassword((prev) => !prev)}
+              tooltip="Repita a senha para confirmação"
+              realTimeValidation={confirmPasswordValidation}
             />
             {errors.confirmPassword && (
               <span className="text-red-500 text-sm mt-1">{errors.confirmPassword}</span>
@@ -297,17 +358,17 @@ const Signup = () => {
 
             {/* Mensagem de Erro */}
             {errorMessage && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+              <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-2">
                 <X size={16} className="text-red-500 flex-shrink-0" />
-                <span className="text-red-700 text-sm">{errorMessage}</span>
+                <span className="text-red-700 dark:text-red-300 text-sm">{errorMessage}</span>
               </div>
             )}
 
             {/* Mensagem de Sucesso */}
             {successMessage && (
-              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+              <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2">
                 <CheckCircle size={16} className="text-green-500 flex-shrink-0" />
-                <span className="text-green-700 text-sm">{successMessage}</span>
+                <span className="text-green-700 dark:text-green-300 text-sm">{successMessage}</span>
               </div>
             )}
 
@@ -318,7 +379,7 @@ const Signup = () => {
             />
 
             <div className="mt-6 text-center">
-              <span className="text-gray-600">Já tem uma conta? </span>
+              <span className="text-gray-600 dark:text-gray-400">Já tem uma conta? </span>
               <button
                 type="button"
                 onClick={() => push("/login")}
