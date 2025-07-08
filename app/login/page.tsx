@@ -27,46 +27,48 @@ const Login = () => {
     }
   }, [push]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitLoading(true);
-    setIsCredentialsInvalid(false);
-    setErrorMessage("");
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setIsSubmitLoading(true);
+  setIsCredentialsInvalid(false);
+  setErrorMessage("");
 
-    setShakeUsername(false);
-    setShakePassword(false);
+  setShakeUsername(false);
+  setShakePassword(false);
 
-    if (!loginData.username || !loginData.password) {
-      if (!loginData.username) setShakeUsername(true);
-      if (!loginData.password) setShakePassword(true);
-      setIsSubmitLoading(false);
-      return;
-    }
+  if (!loginData.username || !loginData.password) {
+    if (!loginData.username) setShakeUsername(true);
+    if (!loginData.password) setShakePassword(true);
+    setIsSubmitLoading(false);
+    return;
+  }
 
-    try {
-      const isValid = await authenticateUser(
-        loginData.username,
-        loginData.password
-      );
+  try {
+    // MUDANÇA AQUI - Nova estrutura de retorno
+    const result = await authenticateUser(
+      loginData.username,
+      loginData.password
+    );
 
-      if (isValid) {
-        login("dummy-token");
-        push("/dashboard");
-      } else {
-        setIsCredentialsInvalid(true);
-        setErrorMessage(
-          "Credenciais inválidas. Verifique seu usuário e senha!"
-        );
-      }
-    } catch (error) {
-      console.error("Erro no login:", error);
+    if (result.success && result.user) {
+      // MUDANÇA AQUI - Passar dados do usuário para login
+      login("dummy-token", result.user);
+      push("/dashboard");
+    } else {
+      setIsCredentialsInvalid(true);
       setErrorMessage(
-        "Aconteceu um erro ao realizar o login. Tente novamente."
+        "Credenciais inválidas. Verifique seu usuário e senha!"
       );
-    } finally {
-      setIsSubmitLoading(false);
     }
-  };
+  } catch (error) {
+    console.error("Erro no login:", error);
+    setErrorMessage(
+      "Aconteceu um erro ao realizar o login. Tente novamente."
+    );
+  } finally {
+    setIsSubmitLoading(false);
+  }
+};
 
   useEffect(() => {
     if (shakeUsername || shakePassword) {

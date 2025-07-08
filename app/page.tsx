@@ -11,5 +11,6 @@ export default function Home() {
   } else {
     redirect("/login");
   }
+  
   return null;
 }
