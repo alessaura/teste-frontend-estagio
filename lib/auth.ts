@@ -48,7 +48,7 @@ export const isAuthenticated = (): boolean => {
   return !!localStorage.getItem("auth_token");
 };
 
-export const login = (token: string, user: User): void => {
+export const login = (token: string, user: User, rememberMe: boolean): void => {
   if (typeof window === "undefined") return;
   localStorage.setItem("auth_token", token);
   localStorage.setItem("user_data", JSON.stringify({

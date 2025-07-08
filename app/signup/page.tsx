@@ -5,6 +5,7 @@ import { Eye, EyeOff, X, CheckCircle } from "lucide-react";
 
 import { registerUser, isAuthenticated } from "@/lib/auth";
 import { Input, SubmitButton, Loader } from "@/components";
+import { useToast } from '@/contexts/ToastContext';
 
 interface FormData {
   username: string;
@@ -23,6 +24,7 @@ interface FormErrors {
 
 const Signup = () => {
   const { push } = useRouter();
+  const { showToast } = useToast();
   const [isSubmitLoading, setIsSubmitLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
@@ -123,27 +125,34 @@ const Signup = () => {
 
     if (!validateForm()) {
       setIsSubmitLoading(false);
+      showToast("Por favor, corrija os erros no formulário", "error");
       return;
     }
 
     try {
-      const isRegistered = await registerUser(
+      const result = await registerUser(
         formData.username,
         formData.password,
         formData.email
       );
 
-      if (isRegistered) {
+      if (result.success) {
         setSuccessMessage("Cadastro realizado com sucesso! Redirecionando...");
+        showToast("Cadastro realizado com sucesso! Redirecionando...", "success", {
+          duration: 3000
+        });
         setTimeout(() => {
           push("/login");
         }, 2000);
       } else {
-        setErrorMessage("Usuário ou email já existe. Tente outro.");
+        setErrorMessage(result.message);
+        showToast(result.message, "error");
       }
     } catch (error) {
       console.error("Erro no cadastro:", error);
-      setErrorMessage("Erro interno do servidor. Tente novamente.");
+      const errorMsg = "Erro interno do servidor. Tente novamente.";
+      setErrorMessage(errorMsg);
+      showToast(errorMsg, "error");
     } finally {
       setIsSubmitLoading(false);
     }

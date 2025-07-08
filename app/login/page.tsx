@@ -5,16 +5,18 @@ import { Eye, EyeOff, X } from "lucide-react";
 
 import { authenticateUser, isAuthenticated, login } from "@/lib/auth";
 import { Input, SubmitButton, Loader } from "@/components";
+import { useToast } from '@/contexts/ToastContext';
 
 const Login = () => {
   const { push } = useRouter();
+  const { showToast } = useToast();
   const [isSubmitLoading, setIsSubmitLoading] = useState<boolean>(false);
-  const [isCredentialsInvalid, setIsCredentialsInvalid] =
-    useState<boolean>(false);
+  const [isCredentialsInvalid, setIsCredentialsInvalid] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [shakeUsername, setShakeUsername] = useState<boolean>(false);
   const [shakePassword, setShakePassword] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
 
   const [loginData, setLoginData] = useState({
     username: "",
@@ -27,48 +29,52 @@ const Login = () => {
     }
   }, [push]);
 
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setIsSubmitLoading(true);
-  setIsCredentialsInvalid(false);
-  setErrorMessage("");
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitLoading(true);
+    setIsCredentialsInvalid(false);
+    setErrorMessage("");
 
-  setShakeUsername(false);
-  setShakePassword(false);
+    setShakeUsername(false);
+    setShakePassword(false);
 
-  if (!loginData.username || !loginData.password) {
-    if (!loginData.username) setShakeUsername(true);
-    if (!loginData.password) setShakePassword(true);
-    setIsSubmitLoading(false);
-    return;
-  }
-
-  try {
-    // MUDANÇA AQUI - Nova estrutura de retorno
-    const result = await authenticateUser(
-      loginData.username,
-      loginData.password
-    );
-
-    if (result.success && result.user) {
-      // MUDANÇA AQUI - Passar dados do usuário para login
-      login("dummy-token", result.user);
-      push("/dashboard");
-    } else {
-      setIsCredentialsInvalid(true);
-      setErrorMessage(
-        "Credenciais inválidas. Verifique seu usuário e senha!"
-      );
+    if (!loginData.username || !loginData.password) {
+      if (!loginData.username) setShakeUsername(true);
+      if (!loginData.password) setShakePassword(true);
+      setIsSubmitLoading(false);
+      showToast("Por favor, preencha todos os campos", "warning");
+      return;
     }
-  } catch (error) {
-    console.error("Erro no login:", error);
-    setErrorMessage(
-      "Aconteceu um erro ao realizar o login. Tente novamente."
-    );
-  } finally {
-    setIsSubmitLoading(false);
-  }
-};
+
+    try {
+      const result = await authenticateUser(
+        loginData.username,
+        loginData.password
+      );
+
+      if (result.success && result.user) {
+        login("dummy-token", result.user, rememberMe);
+        showToast(`Bem-vindo, ${result.user.username}!`, "success", {
+          duration: 2000
+        });
+        setTimeout(() => {
+          push("/dashboard");
+        }, 1000);
+      } else {
+        setIsCredentialsInvalid(true);
+        const errorMsg = "Credenciais inválidas. Verifique seu usuário e senha!";
+        setErrorMessage(errorMsg);
+        showToast(errorMsg, "error");
+      }
+    } catch (error) {
+      console.error("Erro no login:", error);
+      const errorMsg = "Aconteceu um erro ao realizar o login. Tente novamente.";
+      setErrorMessage(errorMsg);
+      showToast(errorMsg, "error");
+    } finally {
+      setIsSubmitLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (shakeUsername || shakePassword) {
@@ -139,6 +145,21 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               }
               onClickIcon={() => setShowPassword((prev) => !prev)}
             />
+
+            {/* Checkbox "Lembrar de mim" */}
+            <div className="flex items-center mt-4">
+              <input
+                id="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 text-primary-purple focus:ring-primary-purple border-gray-300 rounded"
+                disabled={isSubmitLoading}
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                Lembrar de mim
+              </label>
+            </div>
 
             {errorMessage && (
               <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">

@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { ToastProvider } from "@/contexts/ToastContext";
+import { ToastContainer } from "@/components";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Teste Frontend - Login",
-  description: "Aplicação de teste com login e cadastro",
+  title: "Teste Frontend - Capivara AI",
+  description: "Sistema de login e cadastro",
 };
 
 export default function RootLayout({
@@ -16,7 +18,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <ToastProvider>
+          {children}
+          <ToastContainer />
+        </ToastProvider>
+      </body>
     </html>
   );
 }
