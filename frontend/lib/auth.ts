@@ -1,125 +1,143 @@
-// Credentials data
-const credentials = {
-  users: [
-    {
-      username: "admin",
-      password: "admin123",
-      email: "admin@example.com",
-    },
-    {
-      username: "user",
-      password: "user123",
-      email: "user@example.com",
-    },
-    {
-      username: "teste",
-      password: "teste123",
-      email: "teste@example.com",
-    },
-  ],
-};
+import { api } from './api';
 
-export interface User {
+interface User {
+  id: number;
   username: string;
-  password: string;
   email: string;
+  created_at?: string;
 }
 
-export const authenticateUser = async (
-  username: string,
-  password: string
-): Promise<{ success: boolean; user?: User }> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+interface LoginResponse {
+  success: boolean;
+  message: string;
+  access_token: string;
+  refresh_token?: string;
+  user: User;
+}
 
-  const user = credentials.users.find(
-    (u) => u.username === username && u.password === password
-  );
+interface RegisterResponse {
+  success: boolean;
+  message: string;
+  user: User;
+}
 
-  if (user) {
-    return { success: true, user };
+interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+  error?: string;
+}
+
+
+export const registerUser = async (username: string, password: string, email: string) => {
+  try {
+    const result = await api.auth.register({
+      username,
+      email,
+      password,
+      confirm_password: password
+    }) as ApiResponse<RegisterResponse>;
+    
+    if (result.success && result.data) {
+      return { 
+        success: true, 
+        message: result.data.message || 'Usuário cadastrado com sucesso',
+        user: result.data.user 
+      };
+    } else {
+      return { 
+        success: false, 
+        message: result.message || 'Erro no cadastro' 
+      };
+    }
+  } catch (error) {
+    return { 
+      success: false, 
+      message: 'Erro de conexão com o servidor' 
+    };
   }
+};
+
+
+export const loginUser = async (username: string, password: string, rememberMe = false) => {
+  try {
+    const result = await api.auth.login({
+      username,
+      password,
+      remember_me: rememberMe
+    }) as ApiResponse<LoginResponse>;
+    
+    if (result.success && result.data) {
+     
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem('access_token', result.data.access_token);
+      storage.setItem('user_data', JSON.stringify(result.data.user));
+      
+      return { 
+        success: true, 
+        message: result.data.message || 'Login realizado com sucesso',
+        user: result.data.user 
+      };
+    } else {
+      return { 
+        success: false, 
+        message: result.message || 'Credenciais inválidas' 
+      };
+    }
+  } catch (error) {
+    return { 
+      success: false, 
+      message: 'Erro de conexão com o servidor' 
+    };
+  }
+};
+
+export const getToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
   
-  return { success: false };
+  return localStorage.getItem('access_token') || 
+         sessionStorage.getItem('access_token');
+};
+
+export const getCurrentUser = (): User | null => {
+  if (typeof window === 'undefined') return null;
+  
+  const userData = localStorage.getItem('user_data') || 
+                   sessionStorage.getItem('user_data');
+  
+  return userData ? JSON.parse(userData) as User : null;
 };
 
 export const isAuthenticated = (): boolean => {
-  if (typeof window === "undefined") return false;
-  return !!localStorage.getItem("auth_token");
-};
-
-export const login = (token: string, user: User, rememberMe: boolean): void => {
-  if (typeof window === "undefined") return;
-  localStorage.setItem("auth_token", token);
-  localStorage.setItem("user_data", JSON.stringify({
-    username: user.username,
-    email: user.email
-  }));
-};
-
-export const logout = (): void => {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem("auth_token");
-  localStorage.removeItem("user_data");
+  return !!getToken();
 };
 
 
-export const registerUser = async (
-  username: string,
-  password: string,
-  email: string
-): Promise<{ success: boolean; message: string }> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  // Check if user already exists
-  const existingUser = credentials.users.find(
-    (u) => u.username === username || u.email === email
-  );
+export const logout = async () => {
+  const token = getToken();
   
-  if (existingUser) {
-    return { 
-      success: false, 
-      message: "Usuário ou email já existe" 
-    };
+  if (token) {
+    try {
+      await api.auth.logout(token);
+    } catch (error) {
+      console.error('Erro no logout:', error);
+    }
   }
 
-  // Add new user to the array (in production would save to database)
-  const newUser: User = {
-    username,
-    password,
-    email
-  };
-  
-  credentials.users.push(newUser);
-
-  return { 
-    success: true, 
-    message: "Usuário cadastrado com sucesso" 
-  };
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('user_data');
+  sessionStorage.removeItem('access_token');
+  sessionStorage.removeItem('user_data');
 };
 
-// ADICIONAR ao lib/auth.ts
+export const users: Array<{ username: string; password: string; email: string }> = [
+  { username: "admin", password: "admin123", email: "admin@example.com" }
+];
 
-export const getCurrentUser = (): User | null => {
-  if (typeof window === "undefined") return null;
-  
-  const token = localStorage.getItem("auth_token");
-  if (!token) return null;
-  
-  // Recuperar dados do usuário do localStorage
-  const userData = localStorage.getItem("user_data");
-  if (!userData) return null;
-  
-  try {
-    return JSON.parse(userData);
-  } catch {
-    return null;
-  }
+
+export const getUserByUsername = (username: string) => {
+  return users.find(user => user.username === username);
 };
 
-export const getUserByCredentials = (username: string, password: string): User | null => {
-  return credentials.users.find(
-    (u) => u.username === username && u.password === password
-  ) || null;
-};
+export type { User, LoginResponse, RegisterResponse, ApiResponse };
+
