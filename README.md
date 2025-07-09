@@ -1,257 +1,223 @@
-# Teste Técnico - Estágio Frontend
+4.3 Atualizar README.md:
 
-## Descrição
+Bash
 
-Este é um teste técnico para candidatos à vaga de estágio frontend. A aplicação consiste em uma página de login funcional baseada em um arquivo JSON com credenciais.
 
-## Entrega do Teste
+cat > README.md << 'EOF'
+# Capivara AI - Full Stack
 
-A data limite para a entrega do teste é **sexta-feira (11/07) às 23h59**.
-Quaisquer consultas necessárias para o teste estão liberadas, mas lembre-se que o que for desenvolvido será questionado na entrevista técnica.
-Ao finalizar, faça upload do projeto em um repositório público no GitHub e envie o link para Rodrigo Pires no LinkedIn.
+Sistema completo de autenticação e gerenciamento de usuários.
 
-## Desafio para o Candidato
+## 🚀 Demo
 
-### 🎯 **Implementar a Página de Cadastro**
+- **Frontend:** [Em breve]
+- **Backend API:** [Em breve]
 
-O candidato deve criar a página `/signup` com:
+## 🛠️ Tecnologias
 
-1. **Formulário de Registro**:
-
-   - Campo de nome de usuário
-   - Campo de email
-   - Campo de senha
-   - Campo de confirmação de senha
-
-2. **Validações**:
-
-   - Email válido
-   - Senha com mínimo 6 caracteres
-   - Confirmação de senha igual
-   - Usuário não existente
-
-3. **Feedback Visual**:
-
-   - Estados de loading
-   - Mensagens de erro/sucesso
-   - Animações de shake para campos inválidos
-
-4. **Integração**:
-   - Usar os componentes existentes (`Input`, `SubmitButton`, `Loader`)
-   - Integrar com as funções de auth em `lib/auth.ts`
-   - Redirecionar para `/login` após cadastro bem-sucedido
-
-### 📝 **Critérios de Avaliação**
-
-- **Funcionalidade** (40 pontos): Formulário funciona corretamente
-- **Validação** (30 pontos): Validações implementadas adequadamente
-- **Design** (20 pontos): Consistência visual com o login
-- **Código** (10 pontos): Código limpo e bem estruturado
-
-### (OPCIONAL) 🏆 **Funcionalidades Bônus (até 40 pontos extras)**
-
-**Sistema de Notificações (Toast) - +20 pontos**
-
-- [ ] Componente `Toast` reutilizável
-- [ ] Contexto para gerenciar notificações
-- [ ] Diferentes tipos: success, error, warning, info
-- [ ] Animações suaves
-- [ ] Auto-dismiss configurável
-
-**Melhorias de UX - +10 pontos**
-
-- [ ] Loading states em todos os botões
-- [ ] Skeleton loading no dashboard
-- [ ] Tooltips nos campos de formulário
-- [ ] Validação em tempo real
-- [ ] "Lembrar de mim" no login
-
-**Funcionalidades Avançadas - +10 pontos**
-
-- [ ] Página de recuperação de senha (`/forgot-password`)
-- [ ] Indicador de força de senha
-- [ ] Toggle de tema escuro/claro
-- [ ] Perfil do usuário no dashboard
-- [ ] Logout automático por inatividade
-
-### Outras melhorias possíveis:
-
-- 🔄 Integração com API real
-- 🔄 Persistência de dados em banco
-- 🔄 Testes automatizados
-- 🔄 PWA capabilities
-- 🔄 Tema escuro/claro
-
-### 💡 **Dicas**
-
-- Use os componentes existentes como base
-- Siga o mesmo padrão visual do login
-- Teste todas as validações
-- Mantenha a consistência do código
-
----
-
-# Documentação do Projeto
-
-## Funcionalidades
-
-- ✅ **Página de Login**: Autenticação baseada em arquivo JSON
-- 🔄 **Página de Cadastro**: **PRECISA SER IMPLEMENTADA PELO CANDIDATO**
-- ✅ **Dashboard**: Página protegida para usuários autenticados
-- ✅ **Validação de Formulários**: Validação em tempo real
-- ✅ **Feedback Visual**: Animações e estados de loading
-- ✅ **Responsividade**: Design responsivo com Tailwind CSS
-
-## Stack Tecnológica
-
-- **React 18** - Biblioteca JavaScript para interfaces
-- **Next.js 14** - Framework React com App Router
+### Frontend
+- **Next.js 14** - Framework React
 - **TypeScript** - Tipagem estática
-- **Tailwind CSS** - Framework CSS utilitário
-- **Lucide React** - Ícones
+- **Tailwind CSS** - Estilização
+- **JWT** - Autenticação
 
-## Como Executar o Projeto
+### Backend
+- **Flask** - Framework Python
+- **SQLAlchemy** - ORM
+- **PostgreSQL** - Banco de dados
+- **JWT** - Autenticação
+- **bcrypt** - Hash de senhas
+
+## 📁 Estrutura do Projeto
+
+
+
+
+├── frontend/         # Aplicação Next.js
+│   ├── app/         # App Router
+│   ├── components/  # Componentes React
+│   ├── lib/         # Utilitários
+│   └── package.json
+├── backend/         # API Flask
+│   ├── src/         # Código fonte
+│   ├── venv/        # Ambiente virtual
+│   └── requirements.txt
+├── docs/            # Documentação
+└── package.json     # Scripts do monorepo
+
+Plain Text
+
+
+
+## 🏃‍♂️ Desenvolvimento
 
 ### Pré-requisitos
-
 - Node.js 18+
-- npm ou yarn
+- Python 3.9+
+- Git
 
 ### Instalação
 
-1. **Clone o repositório** (se aplicável):
-
 ```bash
-git clone <url-do-repositorio>
-cd teste-frontend
-```
+# Clonar repositório
+git clone https://github.com/SEU_USUARIO/SEU_REPO.git
+cd SEU_REPO
 
-2. **Instale as dependências**:
+# Instalar dependências
+npm run install:all
 
-```bash
-npm install
-# ou
-yarn install
-```
 
-3. **Execute o servidor de desenvolvimento**:
+Executar em desenvolvimento
 
-```bash
+Bash
+
+
+# Executar frontend e backend simultaneamente
 npm run dev
-# ou
-yarn dev
-```
 
-4. **Acesse a aplicação**:
-   Abra [http://localhost:3000](http://localhost:3000) no seu navegador.
+# Ou separadamente:
+npm run dev:frontend  # Frontend em http://localhost:3000
+npm run dev:backend   # Backend em http://localhost:5000
 
-## Credenciais de Teste
 
-A aplicação vem com algumas credenciais pré-definidas para teste:
+Build para produção
 
-| Usuário | Senha    | Email             |
-| ------- | -------- | ----------------- |
-| admin   | admin123 | admin@example.com |
-| user    | user123  | user@example.com  |
-| teste   | teste123 | teste@example.com |
+Bash
 
-## Estrutura do Projeto
 
-```
-teste-frontend/
-├── app/                    # App Router do Next.js
-│   ├── dashboard/         # Página do dashboard
-│   ├── signup/           # Página de cadastro (PRECISA SER IMPLEMENTADA)
-│   ├── globals.css       # Estilos globais
-│   ├── layout.tsx        # Layout raiz
-│   └── page.tsx          # Página de login (home)
-├── components/            # Componentes reutilizáveis
-│   ├── Input.tsx         # Componente de input
-│   ├── SubmitButton.tsx  # Componente de botão
-│   ├── Loader.tsx        # Componente de loading
-│   └── index.ts          # Exportações
-├── lib/                  # Utilitários
-│   └── auth.ts           # Funções de autenticação
-└── package.json          # Dependências e scripts
-```
+npm run build
 
-## Funcionalidades Implementadas
 
-### Página de Login (`/`)
+📚 Funcionalidades
 
-- Formulário de login com validação
-- Animações de shake para campos obrigatórios
-- Toggle de visibilidade da senha
-- Estados de loading durante autenticação
-- Redirecionamento automático se já autenticado
-- Link para página de cadastro
+✅ Implementado
 
-### Página de Cadastro (`/signup`) - **PRECISA SER IMPLEMENTADA**
 
-**O candidato deve implementar a página de cadastro com:**
 
-- [ ] Formulário completo de registro
-- [ ] Validação de email
-- [ ] Confirmação de senha
-- [ ] Validação de força da senha (mínimo 6 caracteres)
-- [ ] Verificação de usuário existente
-- [ ] Feedback de sucesso/erro
-- [ ] Redirecionamento para login após cadastro
-- [ ] Design consistente com a página de login
 
-**Exemplo de estrutura esperada:**
+Sistema de autenticação JWT
 
-```typescript
-// app/signup/page.tsx
-"use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Input, SubmitButton, Loader } from "@/components";
 
-const Signup = () => {
-  // Implementar formulário de cadastro
-  // Usar os componentes existentes
-  // Seguir o mesmo padrão visual do login
-};
-```
 
-### Dashboard (`/dashboard`)
 
-- Página protegida (requer autenticação)
-- Navegação com logout
-- Exibição das credenciais de teste
-- Redirecionamento para login se não autenticado
+Cadastro e login de usuários
 
-## Autenticação
 
-A autenticação é simulada usando:
 
-- **LocalStorage** para persistir o token
-- **Credenciais hardcoded** no arquivo `lib/auth.ts`
-- **Delay simulado** para simular chamadas de API
 
-## Estilo e Design
+Dashboard personalizado
 
-O design deve seguir o padrão fornecido:
 
-- **Cores**: Gradiente roxo (primary-purple: #4F46E5, secondary-purple: #7C3AED)
-- **Tipografia**: Inter (Google Fonts)
-- **Animações**: Shake para validação, hover effects
-- **Layout**: Centrado, responsivo, com sombras e bordas arredondadas
 
-## Scripts Disponíveis
 
-```bash
-npm run dev      # Servidor de desenvolvimento
-npm run build    # Build de produção
-npm run start    # Servidor de produção
-npm run lint     # Linting do código
-```
+Gerenciamento de perfil
 
-## Contato
 
-Para dúvidas sobre o teste, entre em contato com o Rodrigo Pires.
 
----
 
-**Boa sorte no teste! 🚀**
+Sistema de preferências
+
+
+
+
+Tema escuro/claro
+
+
+
+
+Validação em tempo real
+
+
+
+
+Sistema de notificações (Toast)
+
+
+
+
+Indicador de força de senha
+
+🚧 Em desenvolvimento
+
+
+
+
+Recuperação de senha
+
+
+
+
+Autenticação social
+
+
+
+
+API REST completa
+
+
+
+
+Testes automatizados
+
+🌐 Deploy
+
+•
+Frontend: Vercel
+
+•
+Backend: Railway
+
+•
+Banco: PostgreSQL (Railway)
+
+📖 Documentação
+
+•
+API Documentation
+
+•
+Frontend Guide
+
+•
+Backend Guide
+
+•
+Deploy Guide
+
+🤝 Contribuição
+
+1.
+Fork o projeto
+
+2.
+Crie uma branch (git checkout -b feature/nova-funcionalidade)
+
+3.
+Commit suas mudanças (git commit -m 'feat: adiciona nova funcionalidade')
+
+4.
+Push para a branch (git push origin feature/nova-funcionalidade)
+
+5.
+Abra um Pull Request
+
+📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
+
+👤 Autor
+
+Seu Nome
+
+•
+GitHub: @seu-usuario
+
+•
+LinkedIn: Seu Nome
+
+
+
+
+
+⭐ Se este projeto te ajudou, considere dar uma estrela!
+
