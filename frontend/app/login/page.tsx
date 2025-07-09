@@ -1,27 +1,20 @@
 "use client";
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, X } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
-import { authenticateUser, isAuthenticated, login } from "@/lib/auth";
-import { Input, SubmitButton, Loader } from "@/components";
-import { useToast } from '@/contexts/ToastContext';
+import { loginUser, isAuthenticated } from "@/lib/auth";
 
-const Login = () => {
-  const { push } = useRouter();
-  const { showToast } = useToast();
-  const [isSubmitLoading, setIsSubmitLoading] = useState<boolean>(false);
-  const [isCredentialsInvalid, setIsCredentialsInvalid] = useState<boolean>(false);
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [shakeUsername, setShakeUsername] = useState<boolean>(false);
-  const [shakePassword, setShakePassword] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [rememberMe, setRememberMe] = useState<boolean>(false);
-
-  const [loginData, setLoginData] = useState({
+const LoginPage = () => {
+  const [formData, setFormData] = useState({
     username: "",
     password: "",
+    rememberMe: false,
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { push } = useRouter();
 
   useEffect(() => {
     if (isAuthenticated()) {
@@ -29,172 +22,154 @@ const Login = () => {
     }
   }, [push]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitLoading(true);
-    setIsCredentialsInvalid(false);
-    setErrorMessage("");
-
-    setShakeUsername(false);
-    setShakePassword(false);
-
-    if (!loginData.username || !loginData.password) {
-      if (!loginData.username) setShakeUsername(true);
-      if (!loginData.password) setShakePassword(true);
-      setIsSubmitLoading(false);
-      showToast("Por favor, preencha todos os campos", "warning");
+    
+    if (!formData.username.trim() || !formData.password) {
+      setError("Por favor, preencha todos os campos");
       return;
     }
 
+    setIsLoading(true);
+    setError("");
+
     try {
-      const result = await authenticateUser(
-        loginData.username,
-        loginData.password
+      const result = await loginUser(
+        formData.username, 
+        formData.password, 
+        formData.rememberMe
       );
 
-      if (result.success && result.user) {
-        login("dummy-token", result.user, rememberMe);
-        showToast(`Bem-vindo, ${result.user.username}!`, "success", {
-          duration: 2000
-        });
-        setTimeout(() => {
-          push("/dashboard");
-        }, 1000);
+      if (result.success) {
+        push("/dashboard");
       } else {
-        setIsCredentialsInvalid(true);
-        const errorMsg = "Credenciais inválidas. Verifique seu usuário e senha!";
-        setErrorMessage(errorMsg);
-        showToast(errorMsg, "error");
+        setError(result.message || "Credenciais inválidas");
       }
     } catch (error) {
-      console.error("Erro no login:", error);
-      const errorMsg = "Aconteceu um erro ao realizar o login. Tente novamente.";
-      setErrorMessage(errorMsg);
-      showToast(errorMsg, "error");
+      setError("Erro de conexão com o servidor");
     } finally {
-      setIsSubmitLoading(false);
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (shakeUsername || shakePassword) {
-      const timer = setTimeout(() => {
-        setShakeUsername(false);
-        setShakePassword(false);
-      }, 500);
-      return () => clearTimeout(timer);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+
+    // Limpar erro quando usuário começar a digitar
+    if (error) {
+      setError("");
     }
-  }, [shakeUsername, shakePassword]);
+  };
 
   return (
-    <Suspense fallback="Carregando...">
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col w-[450px] p-8 bg-white rounded-xl shadow-lg">
-          <h1 className="text-center font-bold text-[28px] md:text-[32px] hover:scale-[1.03] transition-all duration-500 cursor-default">
-            Entrar na{" "}
+    <div className="min-h-screen bg-gradient-to-br from-primary-purple via-secondary-purple to-primary-purple flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 space-y-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             <span className="gradient-text from-secondary-purple to-primary-purple">
               Capivara AI
             </span>
           </h1>
+          <p className="text-gray-600">Faça login em sua conta</p>
+        </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col mt-8 relative">
-            <label
-              className="block text-base font-medium mt-8 mb-2"
-              htmlFor="username-input"
-            >
-              Usuário
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+              Username
             </label>
-            <Input
-              id="username-input"
+            <input
+              id="username"
+              name="username"
               type="text"
-              placeholder="Digite seu usuário"
-              value={loginData.username}
-              onChange={(event) => {
-                setLoginData({ ...loginData, username: event.target.value });
-                if (isCredentialsInvalid) setIsCredentialsInvalid(false);
-              }}
-              state={isCredentialsInvalid ? "error" : "default"}
-              disabled={isSubmitLoading}
-              className={`${shakeUsername && "animate-shake"}`}
+              value={formData.username}
+              onChange={handleInputChange}
+              placeholder="Digite seu username"
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-purple focus:border-transparent transition-all duration-200"
             />
+          </div>
 
-            <label
-              className="block text-base font-medium mt-8 mb-2"
-              htmlFor="password-input"
-            >
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Senha
             </label>
-            <Input
-              id="password-input"
-              type={showPassword ? "text" : "password"}
-              placeholder="Digite sua senha"
-              value={loginData.password}
-              onChange={(event) => {
-                setLoginData({ ...loginData, password: event.target.value });
-                if (isCredentialsInvalid) setIsCredentialsInvalid(false);
-              }}
-              state={isCredentialsInvalid ? "error" : "default"}
-              disabled={isSubmitLoading}
-              className={`${shakePassword && "animate-shake"}`}
-              icon={
-                showPassword ? (
-                  <EyeOff size={20} className="text-primary-purple" />
-                ) : (
-                  <Eye size={20} className="text-primary-purple" />
-                )
-              }
-              onClickIcon={() => setShowPassword((prev) => !prev)}
-            />
-
-            {/* Checkbox "Lembrar de mim" */}
-            <div className="flex items-center mt-4">
+            <div className="relative">
               <input
-                id="remember-me"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 text-primary-purple focus:ring-primary-purple border-gray-300 rounded"
-                disabled={isSubmitLoading}
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="Digite sua senha"
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-purple focus:border-transparent transition-all duration-200 pr-12"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                Lembrar de mim
-              </label>
-            </div>
-
-            {errorMessage && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
-                <X size={16} className="text-red-500 flex-shrink-0" />
-                <span className="text-red-700 text-sm">{errorMessage}</span>
-              </div>
-            )}
-
-            <SubmitButton
-              title="Entrar"
-              className="mt-8"
-              disabled={isSubmitLoading}
-            />
-
-            <div className="mt-6 text-center">
-              <span className="text-gray-600">Não tem uma conta? </span>
               <button
                 type="button"
-                onClick={() => push("/signup")}
-                className="text-primary-purple hover:text-secondary-purple font-medium transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
               >
-                Cadastre-se
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
+          </div>
 
-            {isSubmitLoading && (
-              <div className="absolute top-1/2 transform -translate-y-1/2 w-full">
-                <Loader />
+          <div className="flex items-center">
+            <input
+              id="rememberMe"
+              name="rememberMe"
+              type="checkbox"
+              checked={formData.rememberMe}
+              onChange={handleInputChange}
+              className="h-4 w-4 text-primary-purple focus:ring-primary-purple border-gray-300 rounded"
+            />
+            <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900">
+              Lembrar de mim
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-secondary-purple to-primary-purple hover:from-primary-purple hover:to-secondary-purple text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Entrando...
               </div>
+            ) : (
+              "Entrar"
             )}
-          </form>
+          </button>
+        </form>
+
+        <div className="text-center">
+          <p className="text-gray-600">
+            Não tem uma conta?{" "}
+            <button
+              onClick={() => push("/signup")}
+              className="text-primary-purple hover:text-secondary-purple font-semibold transition-colors"
+            >
+              Cadastre-se
+            </button>
+          </p>
         </div>
       </div>
-    </Suspense>
+    </div>
   );
 };
 
-export default Login;
+export default LoginPage;
+
